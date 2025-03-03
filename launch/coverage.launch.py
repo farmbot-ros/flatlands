@@ -58,6 +58,7 @@ def launch_setup(context, *args, **kwargs):
                 launch_arguments={
                     'namespace': namespace,
                 }.items() if i != 0 else {
+                    'num_robots': str(num_robots),
                     'namespace': namespace,
                     'alternate_freq': str(num_robots),
                     'calculator': str(1)
