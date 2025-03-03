@@ -1,30 +1,26 @@
+#include "farmbot_flatlands/robot.hpp"
+#include "farmbot_flatlands/sim.hpp"
+#include "rclcpp/rclcpp.hpp"
 #include <cstdint>
 #include <fstream>
 #include <string>
 #include <vector>
-#include "rclcpp/rclcpp.hpp"
-#include "farmbot_flatlands/sim.hpp"
-#include "farmbot_flatlands/robot.hpp"
 
-#include <yaml-cpp/yaml.h>
 #include <nlohmann/json.hpp>
+#include <yaml-cpp/yaml.h>
 using json = nlohmann::json;
 #include "ament_index_cpp/get_package_share_directory.hpp"
 namespace aix = ament_index_cpp;
-#include <spdlog/spdlog.h>
-namespace echo = spdlog;
-
 
 class ConfigParser {
-private:
+  private:
     std::vector<robo::RobotConfig> robots_;
     rclcpp::Node::SharedPtr node;
 
-public:
-    ConfigParser(const std::string& filename, rclcpp::Node::SharedPtr node = nullptr) : node(node) {
+  public:
+    ConfigParser(const std::string &filename, rclcpp::Node::SharedPtr node = nullptr) : node(node) {
         std::string pcg = aix::get_package_share_directory("farmbot_flatlands");
         std::string path = pcg + "/config/" + filename;
-        echo::info("Reading config file: {}", path);
         int num_robots_yaml = 1;
 
         // Parse YAML file
@@ -37,18 +33,17 @@ public:
 
         int num_robots = node->get_parameter_or<int>("num_robots", num_robots_yaml);
 
-        const auto& datum = config["global"]["ros__parameters"]["datum"];
-        const auto& robots_config = config["global"]["ros__parameters"]["robots"];
+        const auto &datum = config["global"]["ros__parameters"]["datum"];
+        const auto &robots_config = config["global"]["ros__parameters"]["robots"];
 
         // Parse configured robots
         for (std::size_t i = 0; i < robots_config.size() && i < num_robots; ++i) {
-            const auto& robot_yaml = robots_config[i];
+            const auto &robot_yaml = robots_config[i];
 
             robo::RobotConfig robot;
             try {
                 robot.ns = robot_yaml["namespace"].as<std::string>();
-            } catch (YAML::TypedBadConversion<std::string>& e) {
-                echo::warn("Robot namespace not found in config file. Using default value.");
+            } catch (YAML::TypedBadConversion<std::string> &e) {
                 robot.ns = "robot" + std::to_string(i);
             }
 
@@ -57,11 +52,11 @@ public:
                 robot.datum.latitude = datum[0].as<double>();
                 robot.datum.longitude = datum[1].as<double>();
             } catch (...) {
-                echo::error("Datum not found in config file. Exiting.");
+                RCLCPP_ERROR(node->get_logger(), "Datum not found in config file. Exiting.");
             }
 
             try {
-                const auto& initial_pose = robot_yaml["location"]["gnss"];
+                const auto &initial_pose = robot_yaml["location"]["gnss"];
                 auto x = initial_pose[0].as<double>();
                 auto y = initial_pose[1].as<double>();
                 auto z = 0;
@@ -76,7 +71,7 @@ public:
                 robot.pose.z = std::get<2>(enu);
             } catch (...) {
                 try {
-                    const auto& initial_pose = robot_yaml["location"]["pose"];
+                    const auto &initial_pose = robot_yaml["location"]["pose"];
                     robot.pose.x = initial_pose[0].as<double>();
                     robot.pose.y = initial_pose[1].as<double>();
                     try {
@@ -103,7 +98,7 @@ public:
                 robot.uuid = robot_yaml["info"]["uuid"].as<std::string>();
                 robot.rci = robot_yaml["info"]["rci"].as<int>();
             } catch (...) {
-                echo::error("Robot info not found in config file. Exiting.");
+                RCLCPP_ERROR(node->get_logger(), "Robot info not found in config file. Exiting.");
             }
 
             robot.sensors = {true, true, true, true};
@@ -112,18 +107,12 @@ public:
 
         // Add random robots if needed
         while (robots_.size() < num_robots) {
-            auto datum_tuple = std::make_tuple(
-                datum[0].as<double>(),
-                datum[1].as<double>(),
-                datum[2].as<double>()
-            );
+            auto datum_tuple = std::make_tuple(datum[0].as<double>(), datum[1].as<double>(), datum[2].as<double>());
             robots_.push_back(generate_random_robot(datum_tuple));
         }
     }
 
-    std::vector<robo::RobotConfig> get_robots() {
-        return robots_;
-    }
+    std::vector<robo::RobotConfig> get_robots() { return robots_; }
 
     robo::RobotConfig generate_random_robot(std::tuple<double, double, double> datum) {
         robo::RobotConfig robot;
@@ -143,7 +132,7 @@ public:
 
         // Generate random UUID and RCI
         robot.uuid = "UUID_" + std::to_string(rand() % 10000);
-        robot.rci = rand() % 4 + 1 + rand() %3;
+        robot.rci = rand() % 4 + 1 + rand() % 3;
 
         // Default sensors
         // robot.sensors = {(rand() % 2) == 1, (rand() % 2) == 1, (rand() % 2) == 1, (rand() % 2) == 1};
@@ -152,10 +141,9 @@ public:
         return robot;
     }
 
-    //TODO: GPS2ENU should be a universal function from localization package
-    std::tuple<double, double, double> gps_to_enu(
-        double datum_lat, double datum_lon, double datum_alt,
-        double current_lat, double current_lon, double current_alt) {
+    // TODO: GPS2ENU should be a universal function from localization package
+    std::tuple<double, double, double> gps_to_enu(double datum_lat, double datum_lon, double datum_alt,
+                                                  double current_lat, double current_lon, double current_alt) {
 
         const double EARTH_RADIUS = 6378137.0;
         // Convert degrees to radians
@@ -203,7 +191,7 @@ public:
     }
 };
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     rclcpp::init(argc, argv);
     rclcpp::executors::MultiThreadedExecutor executor(rclcpp::ExecutorOptions(), 4);
 

@@ -44,7 +44,7 @@ def launch_setup(context, *args, **kwargs):
     tcp = str(LaunchConfiguration('tcp').perform(context))
 
     pgk_share = get_package_share_directory('farmbot_holodeck')
-    launch_file = os.path.join(pgk_share, 'launch', 'rerun.launch.py')
+    launch_file = os.path.join(pgk_share, 'launch', 'pose.launch.py')
 
     actions = []
 
@@ -61,5 +61,16 @@ def launch_setup(context, *args, **kwargs):
         ])
         actions.append(navigation_launch)
 
+    field_launch_file = os.path.join(pgk_share, 'launch', 'field.launch.py')
+    field_launch = GroupAction([
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(field_launch_file),
+            launch_arguments={
+                'namespace': namespace,
+                'tcp': tcp
+            }.items()
+        )
+    ])
+    actions.append(field_launch)
 
     return actions
