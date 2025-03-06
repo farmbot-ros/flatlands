@@ -82,11 +82,16 @@ def launch_setup(context, *args, **kwargs):
 
     for robot in beacons.beacons:
         namespace = robot.name
+        color = robot.color
         navigation_launch = GroupAction(
             [
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(launch_file),
-                    launch_arguments={"namespace": namespace, "tcp": tcp}.items(),
+                    launch_arguments={
+                        "namespace": namespace,
+                        "tcp": tcp,
+                        "color": color,
+                    }.items(),
                 )
             ]
         )
