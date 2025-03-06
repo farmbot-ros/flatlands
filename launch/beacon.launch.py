@@ -8,11 +8,21 @@ from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from ament_index_python.packages import get_package_share_directory
 
+pkg_share = get_package_share_directory("farmbot_flatlands")
+config_file = os.path.join(pkg_share, "config", "simulation.yaml")
+
+print(config_file)
+
+with open(config_file, "r") as f:
+    config = yaml.safe_load(f)
+
+robots = config.get("global", {}).get("ros__parameters", {}).get("robots", [])
+
+# print(robots)
+
 
 def generate_launch_description():
     # Get the package share directory and config file path
-    pkg_share = get_package_share_directory("farmbot_flatlands")
-    config_file = os.path.join(pkg_share, "config", "simulation.yaml")
 
     # Load the YAML configuration file
     with open(config_file, "r") as f:
@@ -29,11 +39,32 @@ def generate_launch_description():
         description="Number of robots to spawn",
     )
 
+    function_arg = DeclareLaunchArgument(
+        "function",
+        default_value="harvester",
+        description="Function of the beacon",
+    )
+
+    color_arg = DeclareLaunchArgument(
+        "color",
+        default_value="#ff0000",
+        description="Color of the beacon",
+    )
+
+    offline_arg = DeclareLaunchArgument(
+        "offline",
+        default_value="60s",
+        description="Offline time of the beacon",
+    )
+
     # Path to the localization.launch.py file
 
     # Create the main launch description
     ld = LaunchDescription()
     ld.add_action(num_robots_arg)
+    ld.add_action(function_arg)
+    ld.add_action(color_arg)
+    ld.add_action(offline_arg)
 
     # Add ann OpaqueFunction to the launch description
     ld.add_action(OpaqueFunction(function=launch_setup))
@@ -43,17 +74,25 @@ def generate_launch_description():
 
 def launch_setup(context, *args, **kwargs):
     num_robots = int(LaunchConfiguration("num_robots").perform(context))
+    function = LaunchConfiguration("function").perform(context)
+    color = LaunchConfiguration("color").perform(context)
+    offline = LaunchConfiguration("offline").perform(context)
 
-    pkg_share_coverage = get_package_share_directory("farmbot_trailblazer")
+    pkg_share_coverage = get_package_share_directory("farmbot_lighthouse")
     coverage_launch_file = os.path.join(
-        pkg_share_coverage, "launch", "coverage.launch.py"
+        pkg_share_coverage, "launch", "beacon.launch.py"
     )
 
     actions = []
 
-    for i in range(num_robots):
-        namespace = f"robot{i}"
-        # GroupAction to launch the coverage.launch.py file under the given namespace
+    for robot in robots:
+        namespace = robot.get("namespace", "robot_default")
+        info = robot.get("info", {})
+        uuid = info.get("uuid", "00000000-0000-0000-0000-000000000000")
+        # rci = info.get("rci", 0)
+        function = info.get("function", "harvester")
+        color = info.get("color", "#ff0000")
+
         robot_launch = GroupAction(
             [
                 # PushRosNamespace(namespace),  # Push the namespace for this robot
@@ -62,19 +101,15 @@ def launch_setup(context, *args, **kwargs):
                     launch_arguments=(
                         {
                             "namespace": namespace,
-                        }.items()
-                        if i != 0
-                        else {
-                            "num_robots": str(num_robots),
-                            "namespace": namespace,
-                            "alternate_freq": str(num_robots),
-                            "calculator": str(1),
+                            "function": function,
+                            "color": color,
+                            "uuid": uuid,
+                            "offline": offline,
                         }.items()
                     ),
                 )
             ]
         )
-
         actions.append(robot_launch)
 
     return actions

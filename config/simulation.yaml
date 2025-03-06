@@ -8,18 +8,26 @@ global:
               info:
                   uuid: "ee3d7f2f-a9db-4557-87fc-6bb1c6895e8e"
                   rci: 2
+                  function: harvester
+                  color: "#1dd215"
             - namespace: robot1
               info:
                   uuid: "cd6337ac-4670-49eb-9b45-39e1a27b7893"
                   rci: 2
+                  function: harvester
+                  color: "#ff8da1"
             - namespace: robot2
               info:
                   uuid: "fb5a6e1c-cdd5-4bfa-bf2f-7c703489eb8d"
                   rci: 2
+                  function: harvester
+                  color: "#44b8f3"
             - namespace: robot3
               info:
                   uuid: "045b24cf-1e99-4a3b-b8a9-25e1c0176966"
                   rci: 2
+                  function: harvester
+                  color: "#e66920"
               location:
                   pose: [20, 50, 0]
                   heading: 45.0
@@ -27,13 +35,17 @@ global:
               info:
                   uuid: "0418dffd-ce04-4638-af09-6a06545abd0e"
                   rci: 2
+                  function: leader
+                  color: "#00ffca"
               location:
                   heading: 45.0
-                  gnss: [51.987405, 5.663525, 53.801823]
+                  gnss: [51.987405, 5.663525, 54.901823]
             - namespace: robot5
               info:
                   uuid: "3e814961-1247-418f-8c9b-e03e25587b35"
                   rci: 2
+                  function: leader
+                  color: "#8715d2"
               location:
                   pose: [30, 40]
                   heading: 45.0
