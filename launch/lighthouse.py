@@ -1,6 +1,10 @@
-# multi_localization_launch.py
+import rclpy
+import time
+import sys
 import os
-import yaml
+
+from rclpy.node import Node
+from farmbot_interfaces.msg import Beacons
 
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, GroupAction
@@ -9,25 +13,53 @@ from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from ament_index_python.packages import get_package_share_directory
 
+# Global variable to store the topic message
+beacons = None
+
+
+class TopicListener(Node):
+    def __init__(self):
+        super().__init__("topic_listener")
+        self.subscription = self.create_subscription(
+            Beacons,
+            "/beacons/rci",
+            self.listener_callback,
+            10,
+        )
+
+    def listener_callback(self, msg):
+        global beacons
+        beacons = msg  # Store received message
+
+
+def wait_for_topic():
+    """Function to wait for a specific topic message before launching nodes."""
+    global beacons
+    rclpy.init()
+    node = TopicListener()
+
+    count = 10
+    print(f"Sleeping for {count}s... ")
+    while count > 0:
+        sys.stdout.write(f"\r{count}s remaining...")  # Overwrites the same line
+        sys.stdout.flush()
+        time.sleep(1)
+        count -= 1
+    print("\rTime's up! Now launching nodes...")
+
+    while beacons is None:
+        rclpy.spin_once(node, timeout_sec=1.0)  # Wait for the message
+
+    rclpy.shutdown()
+
 
 def generate_launch_description():
+    # listener_thread = threading.Thread(target=wait_for_topic)
+    # listener_thread.start()
+    wait_for_topic()
+    print(f"{beacons.beacons} robot(s) found")
+
     ld = LaunchDescription()
-    pkg_share = get_package_share_directory("farmbot_flatlands")
-    config_file = os.path.join(pkg_share, "config", "simulation.yaml")
-
-    with open(config_file, "r") as f:
-        config = yaml.safe_load(f)
-
-    num_robots_param = (
-        config.get("global", {}).get("ros__parameters", {}).get("num_robots", 1)
-    )
-
-    num_robots_arg = DeclareLaunchArgument(
-        "num_robots",
-        default_value=str(num_robots_param),
-        description="Number of robots to spawn",
-    )
-    ld.add_action(num_robots_arg)
 
     tcp_arg = DeclareLaunchArgument(
         "tcp",
@@ -41,7 +73,6 @@ def generate_launch_description():
 
 
 def launch_setup(context, *args, **kwargs):
-    num_robots = int(LaunchConfiguration("num_robots").perform(context))
     tcp = str(LaunchConfiguration("tcp").perform(context))
 
     pgk_share = get_package_share_directory("farmbot_holodeck")
@@ -49,8 +80,8 @@ def launch_setup(context, *args, **kwargs):
 
     actions = []
 
-    for i in range(num_robots):
-        namespace = f"robot{i}"
+    for robot in beacons.beacons:
+        namespace = robot.name
         navigation_launch = GroupAction(
             [
                 IncludeLaunchDescription(

@@ -6,6 +6,7 @@ from launch.actions import IncludeLaunchDescription, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 
 pkg_share = get_package_share_directory("farmbot_flatlands")
@@ -18,21 +19,8 @@ with open(config_file, "r") as f:
 
 robots = config.get("global", {}).get("ros__parameters", {}).get("robots", [])
 
-# print(robots)
-
 
 def generate_launch_description():
-    # Extract the number of robots from the config file
-    num_robots_param = (
-        config.get("global", {}).get("ros__parameters", {}).get("num_robots", 1)
-    )
-
-    num_robots_arg = DeclareLaunchArgument(
-        "num_robots",
-        default_value=str(num_robots_param),
-        description="Number of robots to spawn",
-    )
-
     function_arg = DeclareLaunchArgument(
         "function",
         default_value="harvester",
@@ -51,11 +39,8 @@ def generate_launch_description():
         description="Offline time of the beacon",
     )
 
-    # Path to the localization.launch.py file
-
     # Create the main launch description
     ld = LaunchDescription()
-    ld.add_action(num_robots_arg)
     ld.add_action(function_arg)
     ld.add_action(color_arg)
     ld.add_action(offline_arg)
@@ -77,6 +62,20 @@ def launch_setup(context, *args, **kwargs):
     )
 
     actions = []
+
+    robot_node = Node(
+        package="farmbot_flatlands",
+        executable="simulator",
+        name="simulator",
+        parameters=[
+            {
+                "publish_rate": 10.0,
+                "num_robots": len(robots),
+            },
+        ],
+        output="screen",
+    )
+    actions.append(robot_node)
 
     for robot in robots:
         namespace = robot.get("namespace", "robot_default")
@@ -104,5 +103,21 @@ def launch_setup(context, *args, **kwargs):
             ]
         )
         actions.append(robot_launch)
+
+        visualize_node = Node(
+            package="farmbot_flatlands",
+            executable="visualize",
+            name="visualize_robot",
+            namespace=namespace,
+            parameters=[
+                {"robot_name": namespace},
+                {"robot_color": "blue"},
+                {"robot_width": 0.5},
+                {"robot_length": 0.5},
+                {"robot_height": 0.5},
+            ],
+            output="screen",
+        )
+        actions.append(visualize_node)
 
     return actions
