@@ -61,46 +61,50 @@ def generate_launch_description():
 
     ld = LaunchDescription()
 
-    tcp_arg = DeclareLaunchArgument(
-        "tcp",
-        default_value="127.0.0.0:9876",
-        description="TCP address to connect to the rerun server",
+    angle = DeclareLaunchArgument(
+        "angle",
+        default_value="45",
+        description="Angle to generate swaths",
     )
-    ld.add_action(tcp_arg)
+    ld.add_action(angle)
 
     ld.add_action(OpaqueFunction(function=launch_setup))
     return ld
 
 
 def launch_setup(context, *args, **kwargs):
-    tcp = str(LaunchConfiguration("tcp").perform(context))
+    angle = str(LaunchConfiguration("angle").perform(context))
 
-    pgk_share = get_package_share_directory("farmbot_holodeck")
-    launch_file = os.path.join(pgk_share, "launch", "pose.launch.py")
+    pgk_share = get_package_share_directory("farmbot_trailblazer")
+    launch_file = os.path.join(pgk_share, "launch", "coverage.launch.py")
 
     actions = []
 
     for robot in beacons.beacons:
         namespace = robot.name
-        navigation_launch = GroupAction(
+        # GroupAction to launch the coverage.launch.py file under the given namespace
+        robot_launch = GroupAction(
             [
+                # PushRosNamespace(namespace),  # Push the namespace for this robot
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(launch_file),
-                    launch_arguments={"namespace": namespace, "tcp": tcp}.items(),
+                    launch_arguments=(
+                        {
+                            "namespace": namespace,
+                        }.items()
+                        if robot.name != "robot0"
+                        else {
+                            "namespace": namespace,
+                            "angle": angle,
+                            "num_robots": str(len(beacons.beacons)),
+                            "alternate_freq": str(len(beacons.beacons)),
+                            "calculator": str(1),
+                        }.items()
+                    ),
                 )
             ]
         )
-        actions.append(navigation_launch)
 
-    field_launch_file = os.path.join(pgk_share, "launch", "field.launch.py")
-    field_launch = GroupAction(
-        [
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(field_launch_file),
-                launch_arguments={"namespace": namespace, "tcp": tcp}.items(),
-            )
-        ]
-    )
-    actions.append(field_launch)
+        actions.append(robot_launch)
 
     return actions

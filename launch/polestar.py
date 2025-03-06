@@ -57,7 +57,7 @@ def generate_launch_description():
     # listener_thread = threading.Thread(target=wait_for_topic)
     # listener_thread.start()
     wait_for_topic()
-    print(f"{beacons.beacons} robot(s) found")
+    print(f"{len(beacons.beacons)} robot(s) found")
 
     ld = LaunchDescription()
 
