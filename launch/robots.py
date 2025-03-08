@@ -8,6 +8,8 @@ from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
+from launch.actions import TimerAction
+import random
 
 pkg_share = get_package_share_directory("farmbot_flatlands")
 config_file = os.path.join(pkg_share, "config", "simulation.yaml")
@@ -95,7 +97,11 @@ def launch_setup(context, *args, **kwargs):
                 )
             ]
         )
-        actions.append(robot_launch)
+        # actions.append(robot_launch)
+
+        # Add a delay of 5 seconds before launching the next robot
+        rnd = random.randint(0, 5)
+        actions.append(TimerAction(period=float(rnd), actions=[robot_launch]))
 
         visualize_node = Node(
             package="farmbot_flatlands",
