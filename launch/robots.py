@@ -21,29 +21,21 @@ robots = config.get("global", {}).get("ros__parameters", {}).get("robots", [])
 
 
 def generate_launch_description():
-    function_arg = DeclareLaunchArgument(
-        "function",
-        default_value="harvester",
-        description="Function of the beacon",
-    )
-
-    color_arg = DeclareLaunchArgument(
-        "color",
-        default_value="#ff0000",
-        description="Color of the beacon",
-    )
-
     offline_arg = DeclareLaunchArgument(
         "offline",
         default_value="60s",
         description="Offline time of the beacon",
     )
+    num_robots_arg = DeclareLaunchArgument(
+        "num_robots",
+        default_value=str(len(robots)),
+        description="Number of robots to simulate",
+    )
 
     # Create the main launch description
     ld = LaunchDescription()
-    ld.add_action(function_arg)
-    ld.add_action(color_arg)
     ld.add_action(offline_arg)
+    ld.add_action(num_robots_arg)
 
     # Add ann OpaqueFunction to the launch description
     ld.add_action(OpaqueFunction(function=launch_setup))
@@ -52,9 +44,8 @@ def generate_launch_description():
 
 
 def launch_setup(context, *args, **kwargs):
-    function = LaunchConfiguration("function").perform(context)
-    color = LaunchConfiguration("color").perform(context)
     offline = LaunchConfiguration("offline").perform(context)
+    num_robots = LaunchConfiguration("num_robots").perform(context)
 
     pkg_share_coverage = get_package_share_directory("farmbot_lighthouse")
     coverage_launch_file = os.path.join(
@@ -70,14 +61,16 @@ def launch_setup(context, *args, **kwargs):
         parameters=[
             {
                 "publish_rate": 10.0,
-                "num_robots": len(robots),
+                "num_robots": int(num_robots),
             },
         ],
         output="screen",
     )
     actions.append(robot_node)
 
-    for robot in robots:
+    for i, robot in enumerate(robots):
+        if i >= int(num_robots):
+            break
         namespace = robot.get("namespace", "robot_default")
         info = robot.get("info", {})
         uuid = info.get("uuid", "00000000-0000-0000-0000-000000000000")
