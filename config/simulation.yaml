@@ -1,28 +1,33 @@
 global:
     ros__parameters:
         # [latitude, longitude, altitude]
+        keys_path: "/doc/code/farmbot/src/flatlands/config/keys" 
         datum: [51.987305, 5.663625, 53.801823] # Wageningen
         num_robots: 6
         robots:
             - namespace: robot0
+              key_file: "/doc/code/farmbot/src/flatlands/config/keys/robot0.pem"
               info:
                   uuid: "ee3d7f2f-a9db-4557-87fc-6bb1c6895e8e"
                   rci: 2
                   function: harvester
                   color: "#1dd215"
             - namespace: robot1
+              key_file: "/doc/code/farmbot/src/flatlands/config/keys/robot1.pem"
               info:
                   uuid: "cd6337ac-4670-49eb-9b45-39e1a27b7893"
                   rci: 2
                   function: harvester
                   color: "#ff8da1"
             - namespace: robot2
+              key_file: "/doc/code/farmbot/src/flatlands/config/keys/robot2.pem"
               info:
                   uuid: "fb5a6e1c-cdd5-4bfa-bf2f-7c703489eb8d"
                   rci: 2
                   function: harvester
                   color: "#44b8f3"
             - namespace: robot3
+              key_file: "/doc/code/farmbot/src/flatlands/config/keys/robot3.pem"
               info:
                   uuid: "045b24cf-1e99-4a3b-b8a9-25e1c0176966"
                   rci: 2
@@ -32,6 +37,7 @@ global:
                   pose: [20, 50, 0]
                   heading: 45.0
             - namespace: robot4
+              key_file: "/doc/code/farmbot/src/flatlands/config/keys/robot4.pem"
               info:
                   uuid: "0418dffd-ce04-4638-af09-6a06545abd0e"
                   rci: 2
@@ -41,6 +47,7 @@ global:
                   heading: 45.0
                   gnss: [51.987405, 5.663525, 54.901823]
             - namespace: robot5
+              key_file: "/doc/code/farmbot/src/flatlands/config/keys/robot5.pem"
               info:
                   uuid: "3e814961-1247-418f-8c9b-e03e25587b35"
                   rci: 2

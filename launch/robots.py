@@ -34,10 +34,17 @@ def generate_launch_description():
         description="Number of robots to simulate",
     )
 
+    chain_domain_arg = DeclareLaunchArgument(
+        "chain_domain",
+        default_value="1",
+        description="Chain domain",
+    )
+
     # Create the main launch description
     ld = LaunchDescription()
     ld.add_action(offline_arg)
     ld.add_action(num_robots_arg)
+    ld.add_action(chain_domain_arg)
 
     # Add ann OpaqueFunction to the launch description
     ld.add_action(OpaqueFunction(function=launch_setup))
@@ -48,6 +55,7 @@ def generate_launch_description():
 def launch_setup(context, *args, **kwargs):
     offline = LaunchConfiguration("offline").perform(context)
     num_robots = LaunchConfiguration("num_robots").perform(context)
+    chain_domain = LaunchConfiguration("chain_domain").perform(context)
 
     pkg_share_coverage = get_package_share_directory("farmbot_lighthouse")
     coverage_launch_file = os.path.join(
@@ -70,10 +78,13 @@ def launch_setup(context, *args, **kwargs):
     )
     actions.append(robot_node)
 
+    random.shuffle(robots)
+
     for i, robot in enumerate(robots):
         if i >= int(num_robots):
             break
         namespace = robot.get("namespace", "robot_default")
+        key_file = robot.get("key_file", "")
         info = robot.get("info", {})
         uuid = info.get("uuid", "00000000-0000-0000-0000-000000000000")
         # rci = info.get("rci", 0)
@@ -92,6 +103,8 @@ def launch_setup(context, *args, **kwargs):
                             "color": color,
                             "uuid": uuid,
                             "offline": offline,
+                            "chain_domain": chain_domain,
+                            "key_file": key_file,
                         }.items()
                     ),
                 )
@@ -99,9 +112,9 @@ def launch_setup(context, *args, **kwargs):
         )
         # actions.append(robot_launch)
 
-        # Add a delay of 5 seconds before launching the next robot
-        rnd = random.randint(0, 5)
-        actions.append(TimerAction(period=float(rnd), actions=[robot_launch]))
+        # Add a delay of few seconds before launching the next robot
+        # rnd = random.randint(2, 8)
+        actions.append(TimerAction(period=float(i + 1), actions=[robot_launch]))
 
         visualize_node = Node(
             package="farmbot_flatlands",
