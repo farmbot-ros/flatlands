@@ -37,7 +37,7 @@ class ConfigParser {
         const auto &robots_config = config["global"]["ros__parameters"]["robots"];
 
         // Parse configured robots
-        for (std::size_t i = 0; i < robots_config.size() && i < num_robots; ++i) {
+        for (uint i = 0; i < robots_config.size() && i < num_robots; ++i) {
             const auto &robot_yaml = robots_config[i];
 
             robo::RobotConfig robot;

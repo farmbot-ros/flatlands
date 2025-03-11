@@ -40,11 +40,18 @@ def generate_launch_description():
         description="Chain domain",
     )
 
+    blockchain_arg = DeclareLaunchArgument(
+        "blockchain",
+        default_value="true",
+        description="Blockchain",
+    )
+
     # Create the main launch description
     ld = LaunchDescription()
     ld.add_action(offline_arg)
     ld.add_action(num_robots_arg)
     ld.add_action(chain_domain_arg)
+    ld.add_action(blockchain_arg)
 
     # Add ann OpaqueFunction to the launch description
     ld.add_action(OpaqueFunction(function=launch_setup))
@@ -56,6 +63,7 @@ def launch_setup(context, *args, **kwargs):
     offline = LaunchConfiguration("offline").perform(context)
     num_robots = LaunchConfiguration("num_robots").perform(context)
     chain_domain = LaunchConfiguration("chain_domain").perform(context)
+    blockchain_arg = LaunchConfiguration("blockchain").perform(context)
 
     pkg_share_coverage = get_package_share_directory("farmbot_lighthouse")
     coverage_launch_file = os.path.join(
@@ -105,6 +113,7 @@ def launch_setup(context, *args, **kwargs):
                             "offline": offline,
                             "chain_domain": chain_domain,
                             "key_file": key_file,
+                            "blockchain": blockchain_arg,
                         }.items()
                     ),
                 )
@@ -114,7 +123,7 @@ def launch_setup(context, *args, **kwargs):
 
         # Add a delay of few seconds before launching the next robot
         # rnd = random.randint(2, 8)
-        actions.append(TimerAction(period=float(i + 1), actions=[robot_launch]))
+        actions.append(TimerAction(period=float(i * 11), actions=[robot_launch]))
 
         visualize_node = Node(
             package="farmbot_flatlands",
