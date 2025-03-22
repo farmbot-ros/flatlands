@@ -4,12 +4,11 @@ import sys
 import os
 
 from rclpy.node import Node
-from farmbot_interfaces.msg import Beacons
+from farmbot_interfaces.msg import Agents
 
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from ament_index_python.packages import get_package_share_directory
 
@@ -21,7 +20,7 @@ class TopicListener(Node):
     def __init__(self):
         super().__init__("topic_listener")
         self.subscription = self.create_subscription(
-            Beacons,
+            Agents,
             "/beacons/rci",
             self.listener_callback,
             10,
@@ -39,9 +38,8 @@ def wait_for_topic():
     node = TopicListener()
 
     count = 10
-    print(f"Sleeping for {count}s... ")
     while count > 0:
-        sys.stdout.write(f"\r{count}s remaining...")  # Overwrites the same line
+        sys.stdout.write(f"\rListening {count}s for beacons...")
         sys.stdout.flush()
         time.sleep(1)
         count -= 1
