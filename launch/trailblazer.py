@@ -4,12 +4,11 @@ import sys
 import os
 
 from rclpy.node import Node
-from farmbot_interfaces.msg import Beacons
+from farmbot_interfaces.msg import Agents
 
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from ament_index_python.packages import get_package_share_directory
 
@@ -21,7 +20,7 @@ class TopicListener(Node):
     def __init__(self):
         super().__init__("topic_listener")
         self.subscription = self.create_subscription(
-            Beacons,
+            Agents,
             "/beacons/rci",
             self.listener_callback,
             10,
@@ -39,9 +38,8 @@ def wait_for_topic():
     node = TopicListener()
 
     count = 10
-    print(f"Sleeping for {count}s... ")
     while count > 0:
-        sys.stdout.write(f"\r{count}s remaining...")  # Overwrites the same line
+        sys.stdout.write(f"\rListening {count}s for beacons...")
         sys.stdout.flush()
         time.sleep(1)
         count -= 1
@@ -61,46 +59,36 @@ def generate_launch_description():
 
     ld = LaunchDescription()
 
-    angle = DeclareLaunchArgument(
-        "angle",
-        default_value="45",
-        description="Angle to generate swaths",
+    autodatum = DeclareLaunchArgument(
+        "autodatum",
+        default_value="datum",
+        description="Autodatum type to use",
     )
-    ld.add_action(angle)
+    ld.add_action(autodatum)
 
     ld.add_action(OpaqueFunction(function=launch_setup))
     return ld
 
 
 def launch_setup(context, *args, **kwargs):
-    angle = str(LaunchConfiguration("angle").perform(context))
+    # autodatum = LaunchConfiguration("autodatum").perform(context)
 
-    pgk_share = get_package_share_directory("farmbot_trailblazer")
-    launch_file = os.path.join(pgk_share, "launch", "coverage.launch.py")
+    pkg_share_localization = get_package_share_directory("farmbot_trailblazer")
+    coverage_launch_file = os.path.join(
+        pkg_share_localization, "launch", "coverage.launch.py"
+    )
 
     actions = []
 
     for robot in beacons.beacons:
         namespace = robot.name
-        # GroupAction to launch the coverage.launch.py file under the given namespace
         robot_launch = GroupAction(
             [
-                # PushRosNamespace(namespace),  # Push the namespace for this robot
                 IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource(launch_file),
-                    launch_arguments=(
-                        {
-                            "namespace": namespace,
-                        }.items()
-                        if robot.name != "robot0"
-                        else {
-                            "namespace": namespace,
-                            "angle": angle,
-                            "num_robots": str(len(beacons.beacons)),
-                            "alternate_freq": str(len(beacons.beacons)),
-                            "calculator": str(1),
-                        }.items()
-                    ),
+                    PythonLaunchDescriptionSource(coverage_launch_file),
+                    launch_arguments={
+                        "namespace": namespace,
+                    }.items(),
                 )
             ]
         )
