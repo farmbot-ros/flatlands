@@ -37,7 +37,7 @@ def wait_for_topic():
     rclpy.init()
     node = TopicListener()
 
-    count = 10
+    count = 15
     while count > 0:
         sys.stdout.write(f"\rListening {count}s for beacons...")
         sys.stdout.flush()
