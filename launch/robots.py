@@ -25,7 +25,7 @@ robots = config.get("global", {}).get("ros__parameters", {}).get("robots", [])
 def generate_launch_description():
     offline_arg = DeclareLaunchArgument(
         "offline",
-        default_value="60s",
+        default_value="360s",
         description="Offline time of the beacon",
     )
     num_robots_arg = DeclareLaunchArgument(
