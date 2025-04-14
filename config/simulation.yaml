@@ -1,9 +1,7 @@
 global:
     ros__parameters:
         # [latitude, longitude, altitude]
-        keys_path: "/doc/code/farmbot/src/flatlands/config/keys" 
         datum: [51.987305, 5.663625, 53.801823] # Wageningen
-        num_robots: 6
         robots:
             - namespace: robot0
               key_file: "/doc/code/farmbot/src/flatlands/config/keys/robot0.pem"

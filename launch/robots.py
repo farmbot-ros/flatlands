@@ -88,6 +88,14 @@ def launch_setup(context, *args, **kwargs):
 
     random.shuffle(robots)
 
+    zero_ref = (
+        config.get("global", {})
+        .get("ros__parameters", {})
+        .get("datum", [0.0, 0.0, 0.0])
+    )
+
+    zero_ref_str = "[" + ", ".join(map(str, zero_ref)) + "]"
+
     for i, robot in enumerate(robots):
         if i >= int(num_robots):
             break
@@ -108,6 +116,7 @@ def launch_setup(context, *args, **kwargs):
                         {
                             "namespace": namespace,
                             "function": function,
+                            "zero_ref": zero_ref_str,
                             "color": color,
                             "uuid": uuid,
                             "offline": offline,
