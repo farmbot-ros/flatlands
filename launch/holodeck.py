@@ -56,7 +56,7 @@ def generate_launch_description():
     # listener_thread = threading.Thread(target=wait_for_topic)
     # listener_thread.start()
     wait_for_topic()
-    print(f"{len(beacons.beacons)} robot(s) found")
+    print(f"{len(beacons.agents)} robot(s) found")
 
     ld = LaunchDescription()
 
@@ -79,9 +79,9 @@ def launch_setup(context, *args, **kwargs):
 
     actions = []
 
-    for robot in beacons.beacons:
+    for robot in beacons.agents:
         namespace = robot.name
-        color = robot.color
+        color = robot.participants[0].color
         navigation_launch = GroupAction(
             [
                 IncludeLaunchDescription(
