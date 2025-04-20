@@ -185,7 +185,7 @@ namespace sim {
         // Create GPS Plugin
         gps_plugin_ = std::make_shared<plugins::GPSPlugin>(node_, name_ + "/gnss", get_datum());
         // Create Wheel Plugin
-        wheel_plugin_ = std::make_shared<plugins::WheelPlugin>(node_, name_ + "/odom", get_odom());
+        wheel_plugin_ = std::make_shared<plugins::WheelPlugin>(node_, name_ + "/wheel", get_odom());
         // Create IMU Plugin
         imu_plugin_ = std::make_shared<plugins::IMUPlugin>(node_, name_ + "/imu", get_odom());
         // Create Gyro Plugin
