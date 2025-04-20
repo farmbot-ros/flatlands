@@ -42,8 +42,8 @@ global:
                   function: leader
                   color: "#00ffca"
               location:
+                  gnss: [51.987305, 5.663635, 53.801823]
                   heading: 45.0
-                  gnss: [51.987405, 5.663525, 54.901823]
             - namespace: robot5
               key_file: "/doc/code/farmbot/src/flatlands/config/keys/robot5.pem"
               info:
