@@ -84,19 +84,14 @@ namespace robo {
     // Helper function to convert Location to string
     inline std::string location_to_string(const Location &location) {
         std::ostringstream oss;
-        oss << "Latitude: " << location.latitude << ", "
-            << "Longitude: " << location.longitude << ", "
-            << "Altitude: " << location.altitude << ", "
-            << "Heading: " << location.heading;
+        oss << "Latitude: " << location.latitude << ", " << "Longitude: " << location.longitude << ", "
+            << "Altitude: " << location.altitude << ", " << "Heading: " << location.heading;
         return oss.str();
     }
 
     inline std::string pose_to_string(const Pose &pose) {
         std::ostringstream oss;
-        oss << "X: " << pose.x << ", "
-            << "Y: " << pose.y << ", "
-            << "Z: " << pose.z << ", "
-            << "T: " << pose.t;
+        oss << "X: " << pose.x << ", " << "Y: " << pose.y << ", " << "Z: " << pose.z << ", " << "T: " << pose.t;
         return oss.str();
     }
 
@@ -108,8 +103,8 @@ namespace robo {
             << "UUID: " << robot.uuid << "\n"
             << "Capability Level: " << robot.rci << "\n"
             << "Location: {" << pose_to_string(robot.pose) << "}\n"
-            << "Sensors: {" << sensors_to_string(robot.sensors) << "}"
-            << "Datum: {" << location_to_string(robot.datum) << "}";
+            << "Sensors: {" << sensors_to_string(robot.sensors) << "}" << "Datum: {" << location_to_string(robot.datum)
+            << "}";
         return oss.str();
     }
 } // namespace robo
@@ -190,7 +185,7 @@ namespace sim {
         // Create GPS Plugin
         gps_plugin_ = std::make_shared<plugins::GPSPlugin>(node_, name_ + "/gnss", get_datum());
         // Create Wheel Plugin
-        wheel_plugin_ = std::make_shared<plugins::WheelPlugin>(node_, name_ + "/wheel", get_odom());
+        wheel_plugin_ = std::make_shared<plugins::WheelPlugin>(node_, name_ + "/odom", get_odom());
         // Create IMU Plugin
         imu_plugin_ = std::make_shared<plugins::IMUPlugin>(node_, name_ + "/imu", get_odom());
         // Create Gyro Plugin
