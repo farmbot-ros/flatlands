@@ -28,6 +28,7 @@ namespace sim {
             geometry_msgs::msg::Twist prev_twist_;
             rclcpp::Time last_time_;
 
+          public:
             void init(const std::vector<std::any> &args) override { return; }
 
             IMUPlugin(rclcpp::Node::SharedPtr node, const std::string &topic, const nav_msgs::msg::Odometry &odom)
@@ -44,7 +45,13 @@ namespace sim {
                 }
             }
 
-          public:
+            /**
+             * @brief Updates the IMU data based on the latest odometry information.
+             *
+             * @param current_time The current simulated time.
+             * @param odom The latest odometry data.
+             * @param new_data Flag indicating if new odometry data is available.
+             */
             void tick(const rclcpp::Time &current_time, const nav_msgs::msg::Odometry &odom) override {
                 odom_ = odom;
                 // Calculate time difference
